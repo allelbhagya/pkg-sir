@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snake Game</title>
+<style>
+    body {
+        background-image: url('back.png');
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+    canvas {
+        background-color: rgb(219, 255, 219);
+        border: 5px solid black;
+    }
+    #winMessage {
+        display: none;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 20px;
+        border-radius: 10px;
+        font-size: 24px;
+        text-align: center;
+    }
+</style>
+</head>
+<body>
+<canvas id="gameCanvas" width="600" height="600"></canvas>
+<div id="winMessage">You Win!</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const winMessage = document.getElementById("winMessage");
+
+    const GRID_SIZE = 20;
+    const SNAKE_SIZE = 20;
+    const FPS = 10;
+
+    const boundaryWidth = 400;
+    const boundaryHeight = 400;
+
+    let snake = [{ x: 100, y: 100 }];
+    let food = { x: Math.floor(Math.random() * boundaryWidth / GRID_SIZE) * GRID_SIZE + (canvas.width - boundaryWidth) / 2, y: Math.floor(Math.random() * boundaryHeight / GRID_SIZE) * GRID_SIZE + (canvas.height - boundaryHeight) / 2 };
+    let dx = GRID_SIZE;
+    let dy = 0;
+    let score = 0;
+    let isGameOver = false;
+
+    function drawSnake() {
+        snake.forEach(segment => {
+            ctx.fillStyle = "green";
+            ctx.fillRect(segment.x, segment.y, SNAKE_SIZE, SNAKE_SIZE);
+        });
+    }
+
+    function drawFood() {
+        ctx.fillStyle = "red";
+        ctx.fillRect(food.x, food.y, SNAKE_SIZE, SNAKE_SIZE);
+    }
+
+    function moveSnake() {
+        let headX = snake[0].x + dx;
+        let headY = snake[0].y + dy;
+
+        if (headX < 0) {
+            headX = canvas.width - GRID_SIZE;
+        } else if (headX >= canvas.width) {
+            headX = 0;
+        }
+        if (headY < 0) {
+            headY = canvas.height - GRID_SIZE;
+        } else if (headY >= canvas.height) {
+            headY = 0;
+        }
+
+        const head = { x: headX, y: headY };
+        snake.unshift(head);
+        if (head.x === food.x && head.y === food.y) {
+            score++;
+            generateFood();
+        } else {
+            snake.pop();
+        }
+    }
+
+    function generateFood() {
+        food.x = Math.floor(Math.random() * boundaryWidth / GRID_SIZE) * GRID_SIZE + (canvas.width - boundaryWidth) / 2;
+        food.y = Math.floor(Math.random() * boundaryHeight / GRID_SIZE) * GRID_SIZE + (canvas.height - boundaryHeight) / 2;
+    }
+
+    function drawScore() {
+        ctx.fillStyle = "black";
+        ctx.font = "20px Arial";
+        ctx.fillText("get till 8 🐍 score: " + score, 10, 30);
+    }
+
+    function displayWinMessage() {
+        winMessage.style.display = "block";
+        canvas.style.display = "none";
+    }
+
+    function gameLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        drawSnake();
+        drawFood();
+        drawScore();
+
+        if (!isGameOver) {
+            moveSnake();
+        }
+
+        if (score >= 8 && !isGameOver) {
+            isGameOver = true;
+            displayWinMessage(); 
+        }
+
+        setTimeout(gameLoop, 1000 / FPS);
+    }
+
+    document.addEventListener("keydown", function(event) {
+        if (!isGameOver) {
+            switch (event.key) {
+                case "ArrowLeft":
+                    if (dx === 0) {
+                        dx = -GRID_SIZE;
+                        dy = 0;
+                    }
+                    break;
+                case "ArrowRight":
+                    if (dx === 0) {
+                        dx = GRID_SIZE;
+                        dy = 0;
+                    }
+                    break;
+                case "ArrowUp":
+                    if (dy === 0) {
+                        dx = 0;
+                        dy = -GRID_SIZE;
+                    }
+                    break;
+                case "ArrowDown":
+                    if (dy === 0) {
+                        dx = 0;
+                        dy = GRID_SIZE;
+                    }
+                    break;
+            }
+        }
+    });
+    generateFood();
+    gameLoop();
+});
+</script>
+</body>
+</html>
